@@ -1,4 +1,4 @@
-name: Deploy to Snowflake via Docker (SnowSQL)
+name: Deploy to Snowflake via SnowSQL
 
 on:
   push:
@@ -10,16 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Run SnowSQL using Snowflake Docker Image
+      - name: Download and Install SnowSQL
+        run: |
+          mkdir -p ~/snowsql
+          curl -L https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.24-linux_x86_64.tar.gz  | \
+            tar -xz -C ~/snowsql
+          echo "$HOME/snowsql" >> $GITHUB_PATH
+
+      - name: Run SnowSQL Script
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          docker run --rm -v $PWD:/scripts -w /scripts \
-            snowflake/snowsql:latest snowsql \
+          snowsql \
             -a $SNOWFLAKE_ACCOUNT \
             -u $SNOWFLAKE_USER \
             -p $SNOWFLAKE_PASSWORD \
