@@ -1,4 +1,4 @@
-name: Deploy to Snowflake
+name: Deploy to Snowflake via Docker (SnowSQL)
 
 on:
   push:
@@ -10,21 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Install SnowSQL CLI
-        run: |
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.21-linux_x86_64.bash
-          bash snowsql-1.2.21-linux_x86_64.bash -y
-          echo "$HOME/.snowsql" >> $GITHUB_PATH
-
-      - name: Run SQL in Snowflake
+      - name: Run SnowSQL using Snowflake Docker Image
         env:
-          SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          ~/.snowsql/snowsql -a ${{ secrets.SNOWFLAKE_ACCOUNT }} \
-                             -u ${{ secrets.SNOWFLAKE_USER }} \
-                             -d DEMO_DB \
-                             -s PUBLIC \
-                             -f snowflake/ddl/create_customer_table.sql
+          docker run --rm -v $PWD:/scripts -w /scripts \
+            snowflake/snowsql snowsql \
+            -a $SNOWFLAKE_ACCOUNT \
+            -u $SNOWFLAKE_USER \
+            -p $SNOWFLAKE_PASSWORD \
+            -d DEMO_DB -s PUBLIC \
+            -f snowflake/ddl/create_customer_table.sql
