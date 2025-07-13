@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -20,7 +19,7 @@ jobs:
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
           docker run --rm -v $PWD:/scripts -w /scripts \
-            snowflake/snowsql snowsql \
+            snowflake/snowsql:latest snowsql \
             -a $SNOWFLAKE_ACCOUNT \
             -u $SNOWFLAKE_USER \
             -p $SNOWFLAKE_PASSWORD \
