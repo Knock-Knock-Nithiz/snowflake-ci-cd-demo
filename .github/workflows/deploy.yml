@@ -13,15 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install SnowCLI and add to PATH
+      - name: Install SnowCLI (snowflake-cli-labs)
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install snowflake-cli-labs
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Run SQL in Snowflake using SnowCLI
+      - name: Run SQL in Snowflake using full path
         run: |
-          echo "$SNOWFLAKE_PASSWORD" | snowcli \
+          echo "$SNOWFLAKE_PASSWORD" | ~/.local/bin/snowcli \
             --account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
             --user ${{ secrets.SNOWFLAKE_USER }} \
             sql run -f snowflake/ddl/create_customer_table.sql
