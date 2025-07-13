@@ -13,14 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install SnowCLI (snowflake-cli-labs)
+      - name: Install Homebrew & SnowCLI
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install snowflake-cli-labs
+          sudo apt-get update
+          sudo apt-get install build-essential procps curl file git -y
+          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install snowflake/tap/snowflake-cli
 
-      - name: Run SQL in Snowflake using full path
+      - name: Run SQL in Snowflake
+        env:
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          echo "$SNOWFLAKE_PASSWORD" | ~/.local/bin/snowcli \
+          echo "$SNOWFLAKE_PASSWORD" | snowflake \
             --account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
             --user ${{ secrets.SNOWFLAKE_USER }} \
             sql run -f snowflake/ddl/create_customer_table.sql
