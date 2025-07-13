@@ -13,20 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Homebrew & SnowCLI
+      - name: Install SnowSQL CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install build-essential procps curl file git -y
-          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install snowflake/tap/snowflake-cli
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.21-linux_x86_64.bash
+          bash snowsql-1.2.21-linux_x86_64.bash -y
+          echo "$HOME/.snowsql" >> $GITHUB_PATH
 
       - name: Run SQL in Snowflake
         env:
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWSQL_PWD: ${{ secrets.SNOWFLAKE_PASSWORD }}
         run: |
-          echo "$SNOWFLAKE_PASSWORD" | snowflake \
-            --account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
-            --user ${{ secrets.SNOWFLAKE_USER }} \
-            sql run -f snowflake/ddl/create_customer_table.sql
+          ~/.snowsql/snowsql -a ${{ secrets.SNOWFLAKE_ACCOUNT }} \
+                             -u ${{ secrets.SNOWFLAKE_USER }} \
+                             -d DEMO_DB \
+                             -s PUBLIC \
+                             -f snowflake/ddl/create_customer_table.sql
