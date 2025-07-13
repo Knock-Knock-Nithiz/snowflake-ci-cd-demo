@@ -1,4 +1,4 @@
-name: Deploy to Snowflake via SnowSQL
+name: Deploy to Snowflake using SnowSQL
 
 on:
   push:
@@ -12,12 +12,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Download and Install SnowSQL
+      - name: Get Latest SnowSQL Version
+        id: snowsql_version
+        run: |
+          # Fetch latest stable version info
+          VERSION_JSON=$(curl -s https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.0/generic.js )
+          eval $(echo "$VERSION_JSON" | grep -o 'snowSqlVersion="[^"]*"' | sed 's/snowSqlVersion="//;s/"$//')
+          echo "Found SnowSQL version: $snowSqlVersion"
+          echo "version=$snowSqlVersion" >> $GITHUB_OUTPUT
+
+      - name: Download and Extract SnowSQL
         run: |
           mkdir -p ~/snowsql
-          curl -L https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-1.2.24-linux_x86_64.tar.gz  | \
-            tar -xz -C ~/snowsql
+          SNOWSQL_URL="https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/ ${{ steps.snowsql_version.outputs.version }}/linux_x86_64/snowsql-${{ steps.snowsql_version.outputs.version }}-linux_x86_64.tar.gz"
+          curl -L "$SNOWSQL_URL" | tar -xz -C ~/snowsql
           echo "$HOME/snowsql" >> $GITHUB_PATH
+
+      - name: Verify Installation
+        run: |
+          snowsql --version
 
       - name: Run SnowSQL Script
         env:
