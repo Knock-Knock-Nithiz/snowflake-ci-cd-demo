@@ -13,18 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install SnowSQL via pip
+      - name: Install Snowflake CLI (snowcli)
         run: |
-          pip install snowflake-connector-python
-          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/scripts/installers/other/snowsql-linux_x86_64.bash
-          bash snowsql-linux_x86_64.bash -y
-          echo "$HOME/.snowsql" >> $GITHUB_PATH
+          pip install snowflake-cli-labs
 
       - name: Run SQL in Snowflake
         run: |
-          ~/.snowsql/snowsql -a ${{ secrets.SNOWFLAKE_ACCOUNT }} \
-                             -u ${{ secrets.SNOWFLAKE_USER }} \
-                             -p ${{ secrets.SNOWFLAKE_PASSWORD }} \
-                             -d DEMO_DB \
-                             -s PUBLIC \
-                             -f snowflake/ddl/create_customer_table.sql
+          echo "$SNOWFLAKE_PASSWORD" | snowcli \
+            --account ${{ secrets.SNOWFLAKE_ACCOUNT }} \
+            --user ${{ secrets.SNOWFLAKE_USER }} \
+            sql run -f snowflake/ddl/create_customer_table.sql
